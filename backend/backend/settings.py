@@ -28,6 +28,10 @@ DEBUG = True
 CORS_ORIGIN_ALLOW_ALL = True
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://eraseborderbot-production.up.railway.app/'
+]
+
 
 # Application definition
 
