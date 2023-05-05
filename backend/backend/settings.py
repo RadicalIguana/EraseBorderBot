@@ -30,7 +30,8 @@ ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://backend/',
-    'https://eraseborderbot-production.up.railway.app/'
+    'https://eraseborderbot-production.up.railway.app/',
+    'https://eraseborderbot-production.up.railway.app'
 ]
 
 
@@ -53,7 +54,7 @@ AUTH_USER_MODEL = "quiz.MyUser"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    # "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
