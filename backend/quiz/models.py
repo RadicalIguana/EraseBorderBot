@@ -43,7 +43,7 @@ class MyUserManager(BaseUserManager):
 
 
 class MyUser(AbstractBaseUser):
-    chat_id = models.CharField(max_length=15, primary_key=True)
+    chat_id = models.CharField(max_length=30, primary_key=True)
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,

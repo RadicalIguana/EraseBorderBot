@@ -31,9 +31,9 @@ def create_user(request):
     user = MyUser()
     data = json.loads(request.body.decode('utf-8'))
     
-    error = check_error(data)
-    if len(error) != 0:
-        return JsonResponse(error)
+    # error = check_error(data)
+    # if len(error) != 0:
+    #     return JsonResponse(error)
     
     user.chat_id = data["chat_id"]
     user.first_name = data["first_name"]
