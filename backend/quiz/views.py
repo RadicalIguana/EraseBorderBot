@@ -31,9 +31,9 @@ def create_user(request):
     user = MyUser()
     data = json.loads(request.body.decode('utf-8'))
     
-    # error = check_error(data)
-    # if len(error) != 0:
-    #     return JsonResponse(error)
+    error = check_error(data)
+    if len(error) != 0:
+        return JsonResponse(error)
     
     user.chat_id = data["chat_id"]
     user.first_name = data["first_name"]
@@ -142,6 +142,7 @@ def get_answer(request):
 
 @csrf_exempt
 def get_question_answer(request):
+    """ /quiz/getSubTest """
     req = json.loads(request.body.decode('utf-8'))
     test_id = req['test_id']
     question = Question.objects.filter(test=test_id).values()
@@ -161,12 +162,17 @@ def get_question_answer(request):
 @csrf_exempt
 def create_result(request):
     """ Store test's result """
+    """ /quiz/createResult """
     result = Result()
     req = json.loads(request.body.decode('utf-8'))
+    subject = Subject.objects.filter(id=req["test_id"]).values()
+    for s in subject:
+        subject_id = s['id']
     result.user_id = req["chat_id"]
-    result.subject_id = req["subject_id"]
+    result.subject_id = subject_id
     result.test_id = req["test_id"]
     result.result = req["result"]
+    result.all_question = req['all_question']
     result.save()
     return JsonResponse({"data": "Creating"})
 
@@ -179,13 +185,23 @@ def update_result(request):
 
 @csrf_exempt
 def check_result(request):
+    """ /quiz/checkResult """
     req = json.loads(request.body.decode('utf-8'))
-    incorrect = list()
-    for i in req['data']:
-        if i['is_clicked'] == True:
-            incorrect.append(i)
-            
+    data = req['data']
+    question_response = list()
+    answer_response = list()
+    for i in data:
+        answers = Answer.objects.filter(id=i['a_id']).values()
+        for a in answers:
+            print(a)
+            if not a['is_right']:
+                que = Question.objects.filter(id=a['question_id']).values()
+                ans = Answer.objects.filter(question_id=que[0]['id']).values()
+                for j in ans:
+                    if j == a:
+                        j.update(is_clicked=True)
+                question_response.append(que[0])
+                answer_response.append(list(ans))
     
-    
-    return JsonResponse({"data": incorrect})
+    return JsonResponse({"questions": question_response, "answers": answer_response})
 
