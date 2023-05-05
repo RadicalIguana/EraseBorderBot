@@ -3,6 +3,8 @@ from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 
+from smart_selects.db_fields import ChainedForeignKey
+
 class MyUserManager(BaseUserManager):
     def create_user(self, email, phone, password=None, chat_id='admin'):
         """
@@ -19,6 +21,7 @@ class MyUserManager(BaseUserManager):
         )
 
         user.set_password(password)
+        # user.set_unusable_password()
         user.save(using=self._db)
         return user
 
@@ -108,7 +111,7 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     text = models.CharField('Answer text', max_length=100)
     is_right = models.BooleanField('Is right answer?', default=False)
-    # is_clicked = models.BooleanField(default=False)
+    is_clicked = models.BooleanField(default=False)
     
     def __str__(self):
         return self.text
@@ -117,9 +120,33 @@ class Answer(models.Model):
 class Quiz(models.Model):
     id = models.BigAutoField(primary_key=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    test = models.ForeignKey(Test, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
+    test = ChainedForeignKey(
+        Test, 
+        chained_field = 'subject',
+        chained_model_field = 'subject',
+        show_all = False,
+        auto_choose = True,
+        sort = True,
+        on_delete=models.CASCADE
+    )
+    question = ChainedForeignKey(
+        Question,
+        chained_field = 'test',
+        chained_model_field = 'test',
+        show_all = False,
+        auto_choose = True,
+        sort = True,
+        on_delete=models.CASCADE
+    )
+    answer = ChainedForeignKey(
+        Answer,
+        chained_field = 'question',
+        chained_model_field = 'question',
+        show_all = False,
+        auto_choose = True,
+        sort = True,
+        on_delete=models.CASCADE
+    )
     
     class Meta:
         verbose_name_plural = 'Quizes'
@@ -135,3 +162,10 @@ class Result(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
     result = models.IntegerField()
     all_question = models.IntegerField()
+    
+    
+class Feedback(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    rating = models.IntegerField()
+    text = models.TextField(max_length=255)
+    
