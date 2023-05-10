@@ -1,11 +1,13 @@
 import re
-from docx2python import docx2python
+import docx2txt
 
-doc = docx2python('Информатика.DOCX')
+# Открываем документ и извлекаем текст
+text = docx2txt.process('Информатика.docx')
 
-for i in doc.body:
-    for j in i:
-        for x in j:
-            for y in x:
-                if re.findall('^по теме «.$', y):
-                    print(y)
+for line in text.split('\n'):
+    for i in range(len(line)):
+        if line[0].isdigit() and line[1] == '.':
+            print(line)
+            break
+    
+

@@ -31,9 +31,9 @@ def create_user(request):
     user = MyUser()
     data = json.loads(request.body.decode('utf-8'))
     
-    # error = check_error(data)
-    # if len(error) != 0:
-    #     return JsonResponse(error)
+    error = check_error(data)
+    if len(error) != 0:
+        return JsonResponse({'error': error})
     
     user.chat_id = data["chat_id"]
     user.first_name = data["first_name"]
@@ -49,11 +49,11 @@ def check_error(data):
     email = MyUser.objects.filter(email=data['email']).exists()
     
     phone_pattern = re.findall(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$', data['phone'])
-    if phone_pattern is not None:
+    if phone_pattern is None:
         error['phone_error'] = 'Wrong phone number format'
 
     email_pattern = re.findall(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', data['email'])
-    if email_pattern is not None:
+    if email_pattern is None:
         error['email_error'] = 'Wrong email format'
     
     if phone:

@@ -89,9 +89,9 @@ class AnswerAdmin(admin.ModelAdmin):
     list_display = ['question', 'text', 'is_right']
     
 
-# @admin.register(Feedback)
-# class FeedbackAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'rating', 'text']
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ['id', 'rating', 'text']
     
     
 @admin.register(Result)

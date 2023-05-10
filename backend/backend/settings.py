@@ -28,6 +28,26 @@ DEBUG = True
 CORS_ORIGIN_ALLOW_ALL = True
 ALLOWED_HOSTS = ['*']
 
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
 CSRF_TRUSTED_ORIGINS = [
     'https://backend/',
     'https://eraseborderbot-production.up.railway.app/',
@@ -47,6 +67,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'whitenoise.runserver_nostatic',
+    'corsheaders'
 ]
 
 USE_DJANGO_JQUERY = True
@@ -89,27 +110,27 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'eraseborder_db',
-#         'USER': 'admin',
-#         'PASSWORD': 'admin',
-#         'HOST': 'localhost',
-#         'PORT': 5432
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': 'MQ8oDsibHdymCNydkks3',
-        'HOST': 'containers-us-west-196.railway.app',
-        'PORT': '6436',
+        'NAME': 'eraseborder_db',
+        'USER': 'admin',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost',
+        'PORT': 5432
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'railway',
+#         'USER': 'postgres',
+#         'PASSWORD': 'MQ8oDsibHdymCNydkks3',
+#         'HOST': 'containers-us-west-196.railway.app',
+#         'PORT': '6436',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
