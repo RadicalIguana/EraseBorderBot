@@ -2,7 +2,7 @@ import re
 import docx2txt
 
 # Открываем документ и извлекаем текст
-text = docx2txt.process('Информатика.docx')
+text = docx2txt.process('Информатика.DOCX')
 
 for line in text.split('\n'):
     for i in range(len(line)):
