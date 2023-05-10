@@ -55,11 +55,11 @@ def check_error(data):
 
     phone_pattern = re.findall(r'^(\+7|)[0-9]{10,11}$',
                                data['phone'])
-    if phone_pattern is None:
+    if phone_pattern is not None:
         error['phone_error'] = 'Wrong phone number format'
 
     email_pattern = re.findall(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', data['email'])
-    if email_pattern is None:
+    if email_pattern is not None:
         error['email_error'] = 'Wrong email format'
 
     if phone:
