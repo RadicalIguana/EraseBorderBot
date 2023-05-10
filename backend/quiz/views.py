@@ -53,7 +53,7 @@ def check_error(data):
     phone = MyUser.objects.filter(phone=data['phone']).exists()
     email = MyUser.objects.filter(email=data['email']).exists()
 
-    phone_pattern = re.findall(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$',
+    phone_pattern = re.findall(r'^(\+7|)[0-9]{10,11}$',
                                data['phone'])
     if phone_pattern is None:
         error['phone_error'] = 'Wrong phone number format'
