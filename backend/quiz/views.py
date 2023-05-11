@@ -195,6 +195,28 @@ def update_result(request):
     return JsonResponse({"data": "Updating"})
 
 
+# @csrf_exempt
+# def check_result(request):
+#     """ /quiz/checkResult """
+#     req = json.loads(request.body.decode('utf-8'))
+#     data = req['data']
+#     question_response = list()
+#     answer_response = list()
+#     for i in data:
+#         answers = Answer.objects.filter(id=i['a_id']).values()
+#         for a in answers:
+#             print(a)
+#             if not a['is_right']:
+#                 que = Question.objects.filter(id=a['question_id']).values()
+#                 ans = Answer.objects.filter(question_id=que[0]['id']).values()
+#                 for j in ans:
+#                     if j == a:
+#                         j.update(is_clicked=True)
+#                 question_response.append(que[0])
+#                 answer_response.append(list(ans))
+
+#     return JsonResponse({"questions": question_response, "answers": answer_response})
+
 @csrf_exempt
 def check_result(request):
     """ /quiz/checkResult """
@@ -204,14 +226,13 @@ def check_result(request):
     answer_response = list()
     for i in data:
         answers = Answer.objects.filter(id=i['a_id']).values()
+        
         for a in answers:
             print(a)
             if not a['is_right']:
                 que = Question.objects.filter(id=a['question_id']).values()
                 ans = Answer.objects.filter(question_id=que[0]['id']).values()
-                for j in ans:
-                    if j == a:
-                        j.update(is_clicked=True)
+                
                 question_response.append(que[0])
                 answer_response.append(list(ans))
 
