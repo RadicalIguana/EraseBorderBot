@@ -110,7 +110,7 @@ class Answer(models.Model):
     id = models.BigAutoField(primary_key=True)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     text = models.CharField('Answer text', max_length=100)
-    is_right = models.BooleanField('Is right answer?', default=False)
+    is_right = models.BooleanField('Правильный ответ', default=False)
     is_clicked = models.BooleanField(default=False)
     
     def __str__(self):

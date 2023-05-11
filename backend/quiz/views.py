@@ -8,8 +8,10 @@ import re
 
 from .models import Subject, Test, Question, Answer, MyUser, Result
 
+
 def index(request):
     return HttpResponse('Some text')
+
 
 @csrf_exempt
 def get_user(request):
@@ -19,6 +21,7 @@ def get_user(request):
     data = list(user_data)
     return JsonResponse({'data': data})
 
+
 @csrf_exempt
 def get_user_id(request):
     """ Check existing user """
@@ -26,15 +29,16 @@ def get_user_id(request):
     existing = MyUser.objects.filter(chat_id=user_id['data']).exists()
     return HttpResponse(existing)
 
+
 @csrf_exempt
 def create_user(request):
     user = MyUser()
     data = json.loads(request.body.decode('utf-8'))
-    
-    # error = check_error(data)
-    # if len(error) != 0:
-    #     return JsonResponse(error)
-    
+
+    error = check_error(data)
+    if len(error) != 0:
+        return JsonResponse(error)
+
     user.chat_id = data["chat_id"]
     user.first_name = data["first_name"]
     user.last_name = data["last_name"]
@@ -43,35 +47,38 @@ def create_user(request):
     user.save()
     return HttpResponse('OK')
 
+
 def check_error(data):
     error = {}
     phone = MyUser.objects.filter(phone=data['phone']).exists()
     email = MyUser.objects.filter(email=data['email']).exists()
-    
-    phone_pattern = re.findall(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$', data['phone'])
+
+    phone_pattern = re.findall(r'^(\+7|)[0-9]{10,11}$',
+                               data['phone'])
     if phone_pattern is not None:
         error['phone_error'] = 'Wrong phone number format'
 
     email_pattern = re.findall(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', data['email'])
     if email_pattern is not None:
         error['email_error'] = 'Wrong email format'
-    
+
     if phone:
         error['phone_error'] = 'Phone is existing'
     if email:
         error['email_error'] = 'Email is existing'
-        
+
     if len(data['email']) == 0:
         error['email_error'] = 'Field must not be empty'
     if len(data['phone']) == 0:
         error['phone_error'] = 'Field must not be empty'
-        
+
     if len(data['first_name']) == 0:
         error['first_name_error'] = 'Field must not be empty'
     if len(data['last_name']) == 0:
         error['last_name_error'] = 'Field must not be empty'
-        
+
     return error
+
 
 @csrf_exempt
 def get_all_subjects(request):
@@ -80,6 +87,7 @@ def get_all_subjects(request):
     data = list(subjects)
     return JsonResponse({'data': data})
 
+
 @csrf_exempt
 def get_subjects_tests(request):
     subjects = Subject.objects.all().values()
@@ -87,7 +95,8 @@ def get_subjects_tests(request):
     sub_data = list(subjects)
     test_data = list(tests)
     return JsonResponse({'subjects': sub_data, 'tests': test_data})
-    
+
+
 @csrf_exempt
 def get_subject(request):
     """ Get subject by id 
@@ -100,6 +109,7 @@ def get_subject(request):
     subject = Subject.objects.filter(id=req['id']).values()
     data = list(subject)
     return JsonResponse({'data': data})
+
 
 @csrf_exempt
 def get_test(request):
@@ -114,6 +124,7 @@ def get_test(request):
     data = list(subject)
     return JsonResponse({'data': data})
 
+
 @csrf_exempt
 def get_question(request):
     """ Get all questions of test by test_id 
@@ -125,7 +136,8 @@ def get_question(request):
     req = json.loads(request.body.decode('utf-8'))
     questions = Question.objects.filter(test=req['test_id']).values()
     data = list(questions)
-    return JsonResponse({'data':data})
+    return JsonResponse({'data': data})
+
 
 @csrf_exempt
 def get_answer(request):
@@ -140,6 +152,7 @@ def get_answer(request):
     data = list(answer)
     return JsonResponse({'data': data})
 
+
 @csrf_exempt
 def get_question_answer(request):
     """ /quiz/getSubTest """
@@ -153,8 +166,7 @@ def get_question_answer(request):
         for a in answer:
             if a['question_id'] == q['id']:
                 answer_data.append(a)
-            
-    
+
     question_data = list(question)
     return JsonResponse({'questions': question_data, 'answers': answer_data})
 
@@ -202,6 +214,5 @@ def check_result(request):
                         j.update(is_clicked=True)
                 question_response.append(que[0])
                 answer_response.append(list(ans))
-    
-    return JsonResponse({"questions": question_response, "answers": answer_response})
 
+    return JsonResponse({"questions": question_response, "answers": answer_response})
