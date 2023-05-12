@@ -205,7 +205,6 @@ def check_result(request):
     for i in data:
         answers = Answer.objects.filter(id=i['a_id']).values()
         for a in answers:
-            print(a)
             if not a['is_right']:
                 que = Question.objects.filter(id=a['question_id']).values()
                 ans = Answer.objects.filter(question_id=que[0]['id']).values()
@@ -216,3 +215,53 @@ def check_result(request):
                 answer_response.append(list(ans))
 
     return JsonResponse({"questions": question_response, "answers": answer_response})
+
+
+@csrf_exempt
+def quiz_create(request):
+    array = ['Предмет', 'Первый тест', ['10 вопрос', ('-', 'Первый 10 ответ'), ('+', 'Второй 10 ответ')], ['Второй 10 вопрос', ('-', 'Первый ответ на второй 10 вопрос'), ('+', 'Второй ответ на второй 10 вопрос')], 'Второй тест', ['20 вопрос', ('-', 'Первый 20 вопрос'), ('+', 'Второй 20 вопрос')], ['Второй 20 вопрос', ('-', 'Первый ответ на второй 20 вопрос'), ('+', 'Второй ответ на второй 20 вопрос')]]
+    
+    Subject.objects.create(title=array[0])
+    subject_id = Subject.objects.filter(title=array[0]).values()
+    subject_id = subject_id[0]['id']
+    array.pop(0)
+
+    test_name = ''
+    
+    # for i in range(len(array)):
+    #     if type(array[i]) == str:
+    #         test_name = array[i]
+    #         Test.objects.create(subject_id=subject_id, title=test_name)
+    #     else:
+    #         test_query = list(Test.objects.filter(title=test_name).values())
+    #         test_id = test_query[0]['id']
+                
+                
+    for j, row in enumerate(array):
+        if type(row) == str:
+            test_name = row
+            Test.objects.create(subject_id=subject_id, title=test_name)
+        else:
+            test_query = list(Test.objects.filter(title=test_name).values())
+            test_id = test_query[0]['id']
+            question = ''
+            answers = []
+            for x in range(len(row)):
+                if x == 0:
+                    question = row[x]
+                else:
+                    answers.append(row[x])
+                        
+            print(f"Test:{test_name}\nQuestion: {question}\nAnswers: {answers}")
+            Question.objects.create(text=question, test_id=test_id)
+            question_query = list(Question.objects.filter(text=question).values())
+            question_id = question_query[0]['id']
+            answer_list = []
+            for a in range(len(answers)):
+                answer_text = answers[a][1]
+                is_right = answers[a][0] == '+'
+                answer_list.append(Answer(question_id=question_id, text=answer_text, is_right=is_right))
+            Answer.objects.bulk_create(answer_list)
+            print('-------------------------------')
+            
+    return HttpResponse("OK")

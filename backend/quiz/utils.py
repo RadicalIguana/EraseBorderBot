@@ -1,36 +1,74 @@
 import re
+from docx2python import docx2python
+
+# from .models import Subject, Test, Question, Answer, MyUser, Result
+
+doc = docx2python('Информатика_new_template.DOCX')
+doc_text = doc.text
 
 text = '''
-category 1
-1. Действия, выполняемые с информацией, называются…  
-а) организационными процессами 
-б) структурными процессами 
-в) физическими процессами 
+"Subject name"
+Тест 1 по теме «Общее» (правильные ответы отмечены «+») 
 
-2. 1 бит — это… 
-а) 1 или 0 
-б) 11 
-в) 10 
-г) 01 
+1. Как называется группа файлов, которая хранится отдельной группой и имеет собственное имя? 
+- Байт 
++ Каталог 
+
+2. Как называются данные или программа на магнитном диске? 
+- Папка 
++ Файл 
+
+Тест 4 по теме «Основы алгоритмики. Языки высокого уровня программирования» (правильные ответы отмечены «+») 
+
+1. Распространенные формы представления алгоритмов 
+- образная 
++ словесная 
 
 
-3. Вопрос 3
-1) Ответ 1
-2) Ответа 2
-3) Ответ 3
+2. Операторы … являются простой конструкцией условия 
++ If-Then 
+- Select Case 
 '''
 
-qa = []
-block = []
+subject = re.compile(r'(?<=^“)[^+]+(?=”)')
+test = re.compile(r'(?<=«)[^+]+(?=»)')
+question = re.compile(r'^\d+\.\s(.+)')
+answer = re.compile(r'(^[а-я]\)|^[a-b]\.|^\(\d+\)|^\d+\)|^\d+\.|^Ответ:|^[+-])\s(.*)')
 
-for chunk in re.split(r"\n(?=[а-я\d][).] )", text):
-    if m := re.match(r"\d+\. (.+)", chunk, re.S):
-        qa.append(tuple(block))
-        block = [m.group(1)]
-    elif m := re.match(r"[а-я]+\) (.+?)(?=\n\n|$|[a-z]+\) )", chunk, re.S):
-        block.append(m.group(1))
+output = []
+for line in doc_text.splitlines():
+    if line.startswith('“'):
+        output.append(subject.findall(line))
+    if line.startswith('Тест'):
+        output.append(test.findall(line))
+    if question.match(line):
+        output.append(question.findall(line))
+    elif answer.match(line):
+        output[-1].append(answer.findall(line)[0])
+        
+for test in output:
+    print(test)
+    
+test_name = ''
 
-qa = qa[1:] + [tuple(block)]
+# for i in range(len(output)):
+#     for j in range(len(output[i])):
+        
+        
+# test_array = ['Question', ('+', 'Answer 1'), ('-', 'Answer 2')]
+# question = ''
+# answers = []print(f"Question: {question}\nAnswers: {answers}")
 
-for line in qa:
-    print(line)
+# for i, row in enumerate(test_array):
+#     if i == 0:
+#         question = row
+#     else:
+#         answers.append(row)
+        
+
+        
+
+        
+    
+    
+    
