@@ -55,18 +55,20 @@ test_name = ''
 #     for j in range(len(output[i])):
         
         
-# test_array = ['Question', ('+', 'Answer 1'), ('-', 'Answer 2')]
-# question = ''
-# answers = []print(f"Question: {question}\nAnswers: {answers}")
+test_array = [['Subject'], ['']]
+question = ''
+answers = []
+print(f"Question: {question}\nAnswers: {answers}")
 
-# for i, row in enumerate(test_array):
-#     if i == 0:
-#         question = row
-#     else:
-#         answers.append(row)
+for i, row in enumerate(test_array):
+    if i == 0:
+        question = row
+    else:
+        answers.append(row)
         
 
         
+
 
         
     

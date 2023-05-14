@@ -3,8 +3,13 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-import json
+from django.conf import settings
+
 import re
+
+import os
+
+from docx2python import docx2python
 
 from .models import Subject, Test, Question, Answer, MyUser, Result
 
@@ -219,27 +224,49 @@ def check_result(request):
 
 @csrf_exempt
 def quiz_create(request):
-    array = ['Предмет', 'Первый тест', ['10 вопрос', ('-', 'Первый 10 ответ'), ('+', 'Второй 10 ответ')], ['Второй 10 вопрос', ('-', 'Первый ответ на второй 10 вопрос'), ('+', 'Второй ответ на второй 10 вопрос')], 'Второй тест', ['20 вопрос', ('-', 'Первый 20 вопрос'), ('+', 'Второй 20 вопрос')], ['Второй 20 вопрос', ('-', 'Первый ответ на второй 20 вопрос'), ('+', 'Второй ответ на второй 20 вопрос')]]
+    file_path = os.path.join(settings.BASE_DIR, 'Информатика_new_template.DOCX')
     
-    Subject.objects.create(title=array[0])
-    subject_id = Subject.objects.filter(title=array[0]).values()
+    doc = docx2python(file_path)
+    doc_text = doc.text
+    
+    subject = re.compile(r'(?<=^“)[^+]+(?=”)')
+    test = re.compile(r'(?<=«)[^+]+(?=»)')
+    question = re.compile(r'^\d+\.\s(.+)')
+    answer = re.compile(r'(^[а-я]\)|^[a-b]\.|^\(\d+\)|^\d+\)|^\d+\.|^Ответ:|^[+-])\s(.*)')
+
+    array = []
+    for line in doc_text.splitlines():
+        if line.startswith('“'):
+            array.append(subject.findall(line))
+        if line.startswith('Тест'):
+            array.append(test.findall(line))
+        if question.match(line):
+            array.append(question.findall(line))
+        elif answer.match(line):
+            array[-1].append(answer.findall(line)[0])
+            
+    
+    
+    # array = [['Предмет'], ['Первый тест'], ['10 вопрос', ('-', 'Первый 10 ответ'), ('+', 'Второй 10 ответ')], ['Второй 10 вопрос', ('-', 'Первый ответ на второй 10 вопрос'), ('+', 'Второй ответ на второй 10 вопрос')], ['Второй тест'], ['20 вопрос', ('-', 'Первый 20 вопрос'), ('+', 'Второй 20 вопрос')], ['Второй 20 вопрос', ('-', 'Первый ответ на второй 20 вопрос'), ('+', 'Второй ответ на второй 20 вопрос')]]
+    
+    # for i in range(len(array)):
+    #     if i == 0:
+    #         print(array[i][0])
+    #         break
+    #     print('qwe')
+    
+    Subject.objects.create(title=array[0][0])
+    subject_id = Subject.objects.filter(title=array[0][0]).values()
     subject_id = subject_id[0]['id']
     array.pop(0)
 
     test_name = ''
     
-    # for i in range(len(array)):
-    #     if type(array[i]) == str:
-    #         test_name = array[i]
-    #         Test.objects.create(subject_id=subject_id, title=test_name)
-    #     else:
-    #         test_query = list(Test.objects.filter(title=test_name).values())
-    #         test_id = test_query[0]['id']
-                
-                
     for j, row in enumerate(array):
-        if type(row) == str:
-            test_name = row
+        if len(row) == 1:
+            for str in row:
+                test_name = str
+            # test_name = row
             Test.objects.create(subject_id=subject_id, title=test_name)
         else:
             test_query = list(Test.objects.filter(title=test_name).values())
@@ -251,8 +278,9 @@ def quiz_create(request):
                     question = row[x]
                 else:
                     answers.append(row[x])
+                    
                         
-            print(f"Test:{test_name}\nQuestion: {question}\nAnswers: {answers}")
+            # print(f"Test:{test_name}\nQuestion: {question}\nAnswers: {answers}")
             Question.objects.create(text=question, test_id=test_id)
             question_query = list(Question.objects.filter(text=question).values())
             question_id = question_query[0]['id']
@@ -262,6 +290,6 @@ def quiz_create(request):
                 is_right = answers[a][0] == '+'
                 answer_list.append(Answer(question_id=question_id, text=answer_text, is_right=is_right))
             Answer.objects.bulk_create(answer_list)
-            print('-------------------------------')
+            # print('-------------------------------')
             
     return HttpResponse("OK")
