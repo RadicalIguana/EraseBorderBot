@@ -91,7 +91,7 @@ class Test(models.Model):
     id = models.BigAutoField(primary_key=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     test_number = models.CharField('Test number', max_length=10)
-    title = models.CharField('Test title', max_length=30)
+    title = models.CharField('Test title', max_length=100)
     
     def __str__(self):
         return self.title
@@ -100,7 +100,7 @@ class Test(models.Model):
 class Question(models.Model):
     id = models.BigAutoField(primary_key=True)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
-    text = models.CharField('Question text', max_length=100)
+    text = models.CharField('Question text', max_length=255)
     
     def __str__(self):
         return self.text
@@ -109,7 +109,7 @@ class Question(models.Model):
 class Answer(models.Model):
     id = models.BigAutoField(primary_key=True)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    text = models.CharField('Answer text', max_length=100)
+    text = models.CharField('Answer text', max_length=255)
     is_right = models.BooleanField('Правильный ответ', default=False)
     is_clicked = models.BooleanField(default=False)
     
@@ -166,6 +166,5 @@ class Result(models.Model):
     
 class Feedback(models.Model):
     id = models.BigAutoField(primary_key=True)
-    rating = models.IntegerField()
     text = models.TextField(max_length=255)
     
