@@ -76,7 +76,7 @@ class SubjectAdmin(admin.ModelAdmin):
 
 @admin.register(Test)
 class TestAdmin(admin.ModelAdmin):
-    list_display = ['subject', 'test_number', 'title']
+    list_display = ['subject', 'title']
 
 
 @admin.register(Question)
@@ -89,9 +89,9 @@ class AnswerAdmin(admin.ModelAdmin):
     list_display = ['question', 'text', 'is_right']
     
 
-# @admin.register(Feedback)
-# class FeedbackAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'rating', 'text']
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ['id', 'text']
     
     
 @admin.register(Result)

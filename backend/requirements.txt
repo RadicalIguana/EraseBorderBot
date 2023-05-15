@@ -86,6 +86,7 @@ urllib3==1.26.15
 uvicorn==0.21.1
 watchfiles==0.19.0
 websockets==11.0.2
+whitenoise==6.4.0
 xlrd==1.2.0
 XlsxWriter==3.1.0
 yarl==1.8.2

@@ -23,4 +23,6 @@ urlpatterns = [
     path("updateResult", views.update_result, name="update_result"),
     
     path("checkResult", views.check_result, name="check_result"),
+    
+    path("quizCreate", views.quiz_create, name='quiz_create'),
 ]
