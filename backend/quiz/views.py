@@ -321,78 +321,79 @@ def quiz_create(request):
     
     docs_array = ['Информатика.DOCX', 'Дизайн.DOCX', 'Программирование.DOCX', 'Разработка сайтов.DOCX']
     for i in docs_array:
+        print(i)
         file_path = os.path.join(settings.BASE_DIR, i)
-    
-    doc = docx2python(file_path)
-    doc_text = doc.text
-    
-    subject = re.compile(r'(?<=^“)[^+]+(?=”)')
-    test = re.compile(r'(?<=«)[^+]+(?=»)')
-    question = re.compile(r'^\d+\.\s(.+)')
-    answer = re.compile(r'(^[а-я]\)|^[a-b]\.|^\(\d+\)|^\d+\)|^\d+\.|^Ответ:|^[+-])\s(.*)')
+        
+        doc = docx2python(file_path)
+        doc_text = doc.text
+        
+        subject = re.compile(r'(?<=^“)[^+]+(?=”)')
+        test = re.compile(r'(?<=«)[^+]+(?=»)')
+        question = re.compile(r'^\d+\.\s(.+)')
+        answer = re.compile(r'(^[а-я]\)|^[a-b]\.|^\(\d+\)|^\d+\)|^\d+\.|^Ответ:|^[+-])\s(.*)')
 
-    array = []
-    for line in doc_text.splitlines():
-        if line.startswith('“'):
-            array.append(subject.findall(line))
-        if line.startswith('Тест'):
-            array.append(test.findall(line))
-        if question.match(line):
-            array.append(question.findall(line))
-        elif answer.match(line):
-            array[-1].append(answer.findall(line)[0])
-            
-    # array = [['Предмет'], ['Тест'], ['Радио', ('+', 'Answer 1'), ('-', 'Answer 2')], ['Checkbox', ('+', 'Answer 1'), ('+', 'Answer 2'), ('-', 'Answer 3')], ['Text', ('Test answer')]]
-    
-    Subject.objects.create(title=array[0][0])
-    subject_id = Subject.objects.filter(title=array[0][0]).values()
-    subject_id = subject_id[0]['id']
-    array.pop(0)
-
-    test_name = ''
-    
-    for j, row in enumerate(array):
-        if len(row) == 1:
-            for str in row:
-                test_name = str
-            Test.objects.create(subject_id=subject_id, title=test_name)
-        else:
-            test_query = list(Test.objects.filter(title=test_name).values())
-            test_id = test_query[0]['id']
-            question = ''
-            question_type = ''
-            answers = []
-            for x in range(len(row)):
-                if x == 0:
-                    question = row[x]
-                else:
-                    answers.append(row[x])
-                    
-            
-            count = 0
-            for i in range(len(answers)):
-                for j in answers[i]:
-                    if j == '+':
-                        count += 1
-
-            if count == 0:
-                question_type = 'text'
-            elif count == 1:
-                question_type = 'radio'
-            else:
-                question_type = 'checkbox'
+        array = []
+        for line in doc_text.splitlines():
+            if line.startswith('“'):
+                array.append(subject.findall(line))
+            if line.startswith('Тест'):
+                array.append(test.findall(line))
+            if question.match(line):
+                array.append(question.findall(line))
+            elif answer.match(line):
+                array[-1].append(answer.findall(line)[0])
                 
-            count = 0   
-            Question.objects.create(text=question, test_id=test_id, type=question_type)
-            question_query = list(Question.objects.filter(text=question).values())
-            question_id = question_query[0]['id']
-            answer_list = []
-            for a in range(len(answers)):
-                answer_text = answers[a][1]
-                is_right = answers[a][0] == '+'
-                answer_list.append(Answer(question_id=question_id, text=answer_text, is_right=is_right))
-            Answer.objects.bulk_create(answer_list)
-            
+        # array = [['Предмет'], ['Тест'], ['Радио', ('+', 'Answer 1'), ('-', 'Answer 2')], ['Checkbox', ('+', 'Answer 1'), ('+', 'Answer 2'), ('-', 'Answer 3')], ['Text', ('Test answer')]]
+        
+        Subject.objects.create(title=array[0][0])
+        subject_id = Subject.objects.filter(title=array[0][0]).values()
+        subject_id = subject_id[0]['id']
+        array.pop(0)
+
+        test_name = ''
+        
+        for j, row in enumerate(array):
+            if len(row) == 1:
+                for str in row:
+                    test_name = str
+                Test.objects.create(subject_id=subject_id, title=test_name)
+            else:
+                test_query = list(Test.objects.filter(title=test_name).values())
+                test_id = test_query[0]['id']
+                question = ''
+                question_type = ''
+                answers = []
+                for x in range(len(row)):
+                    if x == 0:
+                        question = row[x]
+                    else:
+                        answers.append(row[x])
+                        
+                
+                count = 0
+                for i in range(len(answers)):
+                    for j in answers[i]:
+                        if j == '+':
+                            count += 1
+
+                if count == 0:
+                    question_type = 'text'
+                elif count == 1:
+                    question_type = 'radio'
+                else:
+                    question_type = 'checkbox'
+                    
+                count = 0   
+                Question.objects.create(text=question, test_id=test_id, type=question_type)
+                question_query = list(Question.objects.filter(text=question).values())
+                question_id = question_query[0]['id']
+                answer_list = []
+                for a in range(len(answers)):
+                    answer_text = answers[a][1]
+                    is_right = answers[a][0] == '+'
+                    answer_list.append(Answer(question_id=question_id, text=answer_text, is_right=is_right))
+                Answer.objects.bulk_create(answer_list)
+                
     return HttpResponse("OK")
 
 
