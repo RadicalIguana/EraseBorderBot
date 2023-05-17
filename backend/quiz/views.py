@@ -39,7 +39,6 @@ def get_user_id(request):
 def create_user(request):
     user = MyUser()
     data = json.loads(request.body.decode('utf-8'))
-    print(data)
 
     error = check_error(data)
     if len(error) != 0:
@@ -309,8 +308,6 @@ def check_result(request):
         #         question_response.append(q)
         #     for a in correct_answer:
         #         answer_response.append(a)
-    print(len(data))
-    print(len(question_response))
     return JsonResponse({"questions": question_response, "answers": answer_response})
 
 def transform_array_by_id(arr):
@@ -321,7 +318,10 @@ def transform_array_by_id(arr):
 
 @csrf_exempt
 def quiz_create(request):
-    file_path = os.path.join(settings.BASE_DIR, 'Информатика.DOCX')
+    
+    docs_array = ['Информатика.DOCX', 'Дизайн.DOCX', 'Программирование.DOCX', 'Разработка сайтов.DOCX']
+    for i in docs_array:
+        file_path = os.path.join(settings.BASE_DIR, i)
     
     doc = docx2python(file_path)
     doc_text = doc.text
@@ -383,7 +383,6 @@ def quiz_create(request):
                 question_type = 'checkbox'
                 
             count = 0   
-            print(f"Test:{test_name}\nQuestion: {question}\nQuestion type: {question_type}\nAnswers: {answers}")
             Question.objects.create(text=question, test_id=test_id, type=question_type)
             question_query = list(Question.objects.filter(text=question).values())
             question_id = question_query[0]['id']
@@ -393,7 +392,6 @@ def quiz_create(request):
                 is_right = answers[a][0] == '+'
                 answer_list.append(Answer(question_id=question_id, text=answer_text, is_right=is_right))
             Answer.objects.bulk_create(answer_list)
-            print('-------------------------------')
             
     return HttpResponse("OK")
 
