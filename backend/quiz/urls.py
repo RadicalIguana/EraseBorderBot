@@ -20,9 +20,13 @@ urlpatterns = [
     path("getSubTest", views.get_subjects_tests, name="get_subjects_tests"),
     
     path("createResult", views.create_result, name="create_result"),
-    path("updateResult", views.update_result, name="update_result"),
+    path("getResult", views.get_result, name="get_result"),
+    
+    path("checkTest", views.check_test, name="check_test"),
     
     path("checkResult", views.check_result, name="check_result"),
     
     path("quizCreate", views.quiz_create, name='quiz_create'),
+    
+    path("sendFeedback", views.send_feedback, name="send_feedback"),
 ]

@@ -3,6 +3,8 @@ from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 
+from django.utils.translation import gettext_lazy as _
+
 from smart_selects.db_fields import ChainedForeignKey
 
 class MyUserManager(BaseUserManager):
@@ -90,7 +92,7 @@ class Subject(models.Model):
 class Test(models.Model):
     id = models.BigAutoField(primary_key=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    test_number = models.CharField('Test number', max_length=10)
+    # test_number = models.CharField('Test number', max_length=10)
     title = models.CharField('Test title', max_length=100)
     
     def __str__(self):
@@ -98,8 +100,19 @@ class Test(models.Model):
     
     
 class Question(models.Model):
+    
+    class TypeChoice(models.TextChoices):
+        RADIO = "radio", _("radio")
+        CHECKBOX = "checkbox", ("checkbox")
+        TEXT = "text", _("text")
+    
     id = models.BigAutoField(primary_key=True)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    type = models.CharField(
+        max_length=8,
+        choices=TypeChoice.choices,
+        default=TypeChoice.RADIO
+    )
     text = models.CharField('Question text', max_length=255)
     
     def __str__(self):

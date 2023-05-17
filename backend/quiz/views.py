@@ -5,13 +5,13 @@ from django.views.decorators.csrf import csrf_exempt
 
 from django.conf import settings
 
+from itertools import groupby
 import re
-
 import os
 
 from docx2python import docx2python
 
-from .models import Subject, Test, Question, Answer, MyUser, Result
+from .models import Feedback, Subject, Test, Question, Answer, MyUser, Result
 
 
 def index(request):
@@ -39,6 +39,7 @@ def get_user_id(request):
 def create_user(request):
     user = MyUser()
     data = json.loads(request.body.decode('utf-8'))
+    print(data)
 
     error = check_error(data)
     if len(error) != 0:
@@ -58,29 +59,29 @@ def check_error(data):
     phone = MyUser.objects.filter(phone=data['phone']).exists()
     email = MyUser.objects.filter(email=data['email']).exists()
 
-    phone_pattern = re.findall(r'^(\+7|)[0-9]{10,11}$',
-                               data['phone'])
-    if phone_pattern is not None:
-        error['phone_error'] = 'Wrong phone number format'
+
+    phone_pattern = re.findall('^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$', data['phone'])
+    if not bool(phone_pattern):
+        error['phone_error'] = 'Неправильный формат номера'
 
     email_pattern = re.findall(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', data['email'])
-    if email_pattern is not None:
-        error['email_error'] = 'Wrong email format'
+    if not bool(email_pattern):
+        error['email_error'] = 'Неправильный формат почты'
 
     if phone:
-        error['phone_error'] = 'Phone is existing'
+        error['phone_error'] = 'Номер уже зарегистрирован'
     if email:
-        error['email_error'] = 'Email is existing'
+        error['email_error'] = 'Email уже зарегистрирован'
 
     if len(data['email']) == 0:
-        error['email_error'] = 'Field must not be empty'
+        error['email_error'] = 'Поле должно быть заполненным'
     if len(data['phone']) == 0:
-        error['phone_error'] = 'Field must not be empty'
+        error['phone_error'] = 'Поле должно быть заполненным'
 
     if len(data['first_name']) == 0:
-        error['first_name_error'] = 'Field must not be empty'
+        error['first_name_error'] = 'Поле должно быть заполненным'
     if len(data['last_name']) == 0:
-        error['last_name_error'] = 'Field must not be empty'
+        error['last_name_error'] = 'Поле должно быть заполненным'
 
     return error
 
@@ -182,45 +183,57 @@ def create_result(request):
     """ /quiz/createResult """
     result = Result()
     req = json.loads(request.body.decode('utf-8'))
-    subject = Subject.objects.filter(id=req["test_id"]).values()
-    for s in subject:
-        subject_id = s['id']
-    result.user_id = req["chat_id"]
-    result.subject_id = subject_id
-    result.test_id = req["test_id"]
-    result.result = req["result"]
-    result.all_question = req['all_question']
-    result.save()
-    return JsonResponse({"data": "Creating"})
+    test = Test.objects.filter(id=req['test_id']).values()
+    subject = Subject.objects.filter(id=test[0]['subject_id']).values()
+    subject_id = subject[0]['id']
+
+    updated_result = {
+        "result": req["result"],
+    }
+    created = Result.objects.update_or_create(
+        user_id=req["chat_id"],
+        subject_id=subject_id,
+        test_id=req["test_id"],
+        all_question=req["all_question"],
+        defaults=updated_result
+    )    
+    
+    return HttpResponse('OK')
 
 
 @csrf_exempt
-def update_result(request):
+def get_result(request):
+    req = json.loads(request.body.decode('utf-8'))
+    id = int(req['chat_id'])
+    result_obj = Result.objects.filter(user_id=id).values()
+    response = []
+    
+    for i in result_obj:
+        subject_id = i['subject_id']
+        test_id = i['test_id']
+        result = i['result']
+        all_question = i['all_question']
+        
+        subject_title = Subject.objects.get(id=subject_id)
+        subject_title = subject_title.title
+        
+        test_title = Test.objects.get(id=test_id)
+        test_title = test_title.title
+        response.append({
+            "subject": subject_title,
+            "test": test_title,
+            "result": result,
+            "all_question": all_question
+        })
+        
+    return JsonResponse({
+        "data": response
+    })
+
+@csrf_exempt
+def check_test(request):
     """ Update test's result """
-    return JsonResponse({"data": "Updating"})
-
-
-# @csrf_exempt
-# def check_result(request):
-#     """ /quiz/checkResult """
-#     req = json.loads(request.body.decode('utf-8'))
-#     data = req['data']
-#     question_response = list()
-#     answer_response = list()
-#     for i in data:
-#         answers = Answer.objects.filter(id=i['a_id']).values()
-#         for a in answers:
-#             print(a)
-#             if not a['is_right']:
-#                 que = Question.objects.filter(id=a['question_id']).values()
-#                 ans = Answer.objects.filter(question_id=que[0]['id']).values()
-#                 for j in ans:
-#                     if j == a:
-#                         j.update(is_clicked=True)
-#                 question_response.append(que[0])
-#                 answer_response.append(list(ans))
-
-#     return JsonResponse({"questions": question_response, "answers": answer_response})
+    return JsonResponse({"data": [10, 11, 12, 13]})
 
 @csrf_exempt
 def check_result(request):
@@ -230,22 +243,85 @@ def check_result(request):
     question_response = list()
     answer_response = list()
     for i in data:
-        answers = Answer.objects.filter(id=i['a_id']).values()
+        ex = False
+        # if type(i) == dict and i['answer'] == None:
+        #     correct_question = Question.objects.filter(id=i['q_id']).values()
+        #     correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
+        #     for q in correct_question:
+        #         question_response.append(q)
+        #     for a in correct_answer:
+        #         answer_response.append(a)
         
-        for a in answers:
-            if not a['is_right']:
-                que = Question.objects.filter(id=a['question_id']).values()
-                ans = Answer.objects.filter(question_id=que[0]['id']).values()
-                
-                question_response.append(que[0])
-                answer_response.append(list(ans))
-
+        if type(i) == dict and i['q_type'] == "text": 
+            correct_question = Question.objects.filter(id=i['q_id']).values()
+            correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
+            if i['answer'] == None:
+                question_response.append(correct_question[0])
+                answer_response.append(correct_answer[0])
+            else:
+                if i['answer'] != correct_answer[0]['text']:
+                    question_response.append(correct_question[0])
+                    answer_response.append(correct_answer[0])
+            
+        elif type(i) == dict and i['q_type'] == "radio":
+            if i['answer'] == None:
+                correct_question = Question.objects.filter(id=i['q_id']).values()
+                correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
+                question_response.append(correct_question[0])
+                for x in correct_answer:
+                    answer_response.append(x)
+            else:
+                user_answer = i['answer']
+                if not user_answer['is_right']:
+                    correct_question = Question.objects.filter(id=i['q_id']).values()
+                    correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
+                    # correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
+                    question_response.append(correct_question[0])
+                    for x in correct_answer:
+                        answer_response.append(x)
+        
+        elif type(i) == dict and i['q_type'] == 'checkbox' and i['answer'] == None:
+            correct_question = Question.objects.filter(id=i['q_id']).values()
+            correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
+            question_response.append(correct_question[0])
+            for x in correct_answer:
+                answer_response.append(x)
+        
+        
+        elif type(i) == list:
+            answer_array = transform_array_by_id(i)
+            for elem in answer_array: 
+                for j in elem:
+                    if not j['is_right']:
+                        correct_question = Question.objects.filter(id=j['question_id']).values()
+                        correct_answer = Answer.objects.filter(question_id=j['question_id']).values()
+                        if correct_question[0] not in question_response:
+                            question_response.append(correct_question[0])
+                        for x in correct_answer:
+                            if x not in answer_response:
+                                answer_response.append(x)
+                    
+               
+        # elif type(i) == dict and i['answer'] == None:
+        #     correct_question = Question.objects.filter(id=i['q_id']).values()
+        #     correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
+        #     for q in correct_question:
+        #         question_response.append(q)
+        #     for a in correct_answer:
+        #         answer_response.append(a)
+    print(len(data))
+    print(len(question_response))
     return JsonResponse({"questions": question_response, "answers": answer_response})
+
+def transform_array_by_id(arr):
+    sorted_array = sorted(arr, key=lambda x: x['question_id'])
+    grouped_array = [list(group) for key, group in groupby(sorted_array, key=lambda x: x['question_id'])]
+    return grouped_array
 
 
 @csrf_exempt
 def quiz_create(request):
-    file_path = os.path.join(settings.BASE_DIR, 'Информатика_new_template.DOCX')
+    file_path = os.path.join(settings.BASE_DIR, 'Информатика_finally_version.DOCX')
     
     doc = docx2python(file_path)
     doc_text = doc.text
@@ -266,15 +342,7 @@ def quiz_create(request):
         elif answer.match(line):
             array[-1].append(answer.findall(line)[0])
             
-    
-    
-    # array = [['Предмет'], ['Первый тест'], ['10 вопрос', ('-', 'Первый 10 ответ'), ('+', 'Второй 10 ответ')], ['Второй 10 вопрос', ('-', 'Первый ответ на второй 10 вопрос'), ('+', 'Второй ответ на второй 10 вопрос')], ['Второй тест'], ['20 вопрос', ('-', 'Первый 20 вопрос'), ('+', 'Второй 20 вопрос')], ['Второй 20 вопрос', ('-', 'Первый ответ на второй 20 вопрос'), ('+', 'Второй ответ на второй 20 вопрос')]]
-    
-    # for i in range(len(array)):
-    #     if i == 0:
-    #         print(array[i][0])
-    #         break
-    #     print('qwe')
+    # array = [['Предмет'], ['Тест'], ['Радио', ('+', 'Answer 1'), ('-', 'Answer 2')], ['Checkbox', ('+', 'Answer 1'), ('+', 'Answer 2'), ('-', 'Answer 3')], ['Text', ('Test answer')]]
     
     Subject.objects.create(title=array[0][0])
     subject_id = Subject.objects.filter(title=array[0][0]).values()
@@ -287,12 +355,12 @@ def quiz_create(request):
         if len(row) == 1:
             for str in row:
                 test_name = str
-            # test_name = row
             Test.objects.create(subject_id=subject_id, title=test_name)
         else:
             test_query = list(Test.objects.filter(title=test_name).values())
             test_id = test_query[0]['id']
             question = ''
+            question_type = ''
             answers = []
             for x in range(len(row)):
                 if x == 0:
@@ -300,9 +368,23 @@ def quiz_create(request):
                 else:
                     answers.append(row[x])
                     
-                        
-            # print(f"Test:{test_name}\nQuestion: {question}\nAnswers: {answers}")
-            Question.objects.create(text=question, test_id=test_id)
+            
+            count = 0
+            for i in range(len(answers)):
+                for j in answers[i]:
+                    if j == '+':
+                        count += 1
+
+            if count == 0:
+                question_type = 'text'
+            elif count == 1:
+                question_type = 'radio'
+            else:
+                question_type = 'checkbox'
+                
+            count = 0   
+            print(f"Test:{test_name}\nQuestion: {question}\nQuestion type: {question_type}\nAnswers: {answers}")
+            Question.objects.create(text=question, test_id=test_id, type=question_type)
             question_query = list(Question.objects.filter(text=question).values())
             question_id = question_query[0]['id']
             answer_list = []
@@ -311,6 +393,18 @@ def quiz_create(request):
                 is_right = answers[a][0] == '+'
                 answer_list.append(Answer(question_id=question_id, text=answer_text, is_right=is_right))
             Answer.objects.bulk_create(answer_list)
-            # print('-------------------------------')
+            print('-------------------------------')
             
     return HttpResponse("OK")
+
+
+@csrf_exempt
+def send_feedback(request):
+    req = json.loads(request.body.decode('utf-8'))
+    data = req["data"]
+    feedback = Feedback()
+    feedback.text = data['text']
+    feedback.save()    
+    return JsonResponse({"data": "OK"})
+    
+    
