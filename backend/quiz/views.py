@@ -321,7 +321,7 @@ def transform_array_by_id(arr):
 
 @csrf_exempt
 def quiz_create(request):
-    file_path = os.path.join(settings.BASE_DIR, 'Информатика_finally_version.DOCX')
+    file_path = os.path.join(settings.BASE_DIR, 'Информатика.DOCX')
     
     doc = docx2python(file_path)
     doc_text = doc.text
