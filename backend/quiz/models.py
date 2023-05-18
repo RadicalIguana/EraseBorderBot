@@ -4,7 +4,7 @@ from django.contrib.auth.models import (
 )
 
 from django.utils.translation import gettext_lazy as _
-
+from django.contrib import admin
 from smart_selects.db_fields import ChainedForeignKey
 
 class MyUserManager(BaseUserManager):
@@ -61,6 +61,10 @@ class MyUser(AbstractBaseUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['phone']
+    
+    class Meta:
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
 
     def __str__(self):
         return self.email
@@ -167,6 +171,12 @@ class Quiz(models.Model):
     def __str__(self):
         return 'Quiz'
     
+    @admin.display(description='Subject')
+    def quiz_subject(self):
+        subject = Subject.objects.get(id=self.subject.id)
+        subject_title = subject.title
+        return f"{subject_title}"
+    
     
 class Result(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -175,6 +185,20 @@ class Result(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
     result = models.IntegerField()
     all_question = models.IntegerField()
+    
+    @admin.display(description="First name")
+    def first_name(self):
+        first_name = self.user.first_name
+        return f"{first_name}"
+    
+    @admin.display(description="Last name")
+    def last_name(self):
+        last_name = self.user.last_name
+        return f"{last_name}"
+    
+    @admin.display(description="Total result")
+    def total_result(self):
+        return f"{self.result} / {self.all_question}"
     
     
 class Feedback(models.Model):

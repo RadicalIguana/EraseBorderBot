@@ -232,7 +232,15 @@ def get_result(request):
 @csrf_exempt
 def check_test(request):
     """ Update test's result """
-    return JsonResponse({"data": [10, 11, 12, 13]})
+    
+    # chat_id: 1488, tests: [10, 13]
+    req = json.loads(request.body.decode('utf-8'))
+    tests = list()
+    results = Result.objects.filter(user_id=req['chat_id']).values()
+    for test_id in results:
+        tests.append(test_id['test_id'])
+    
+    return JsonResponse({"data": tests})
 
 @csrf_exempt
 def check_result(request):
