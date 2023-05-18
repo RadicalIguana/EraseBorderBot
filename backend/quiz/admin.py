@@ -62,7 +62,7 @@ class UserAdmin(BaseUserAdmin, admin.ModelAdmin):
         }),
     )
     search_fields = ('email', 'first_name', 'last_name', )
-    ordering = ('email', 'first_name', 'last_name')
+    ordering = ('email', 'first_name', 'last_name', 'is_admin')
     filter_horizontal = ()
 
 

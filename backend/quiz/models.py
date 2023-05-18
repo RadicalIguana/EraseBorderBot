@@ -49,18 +49,18 @@ class MyUser(AbstractBaseUser):
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
-        unique=True,
+        unique=False
     )
     first_name = models.CharField('First name', max_length=32)
     last_name = models.CharField('Last name', max_length=32)
-    phone = models.CharField('Phone', max_length=12, unique=True)
+    phone = models.CharField('Phone', max_length=12, unique=False)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
 
     objects = MyUserManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['phone']
+    USERNAME_FIELD = 'chat_id'
+    REQUIRED_FIELDS = ['is_admin']
     
     class Meta:
         verbose_name = 'User'

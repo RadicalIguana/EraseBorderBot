@@ -59,23 +59,24 @@ def check_error(data):
     email = MyUser.objects.filter(email=data['email']).exists()
 
 
-    phone_pattern = re.findall('^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$', data['phone'])
+    phone_pattern = re.findall('(^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$)|(^\s*$)', data['phone'])
     if not bool(phone_pattern):
         error['phone_error'] = 'Неправильный формат номера'
 
-    email_pattern = re.findall(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', data['email'])
+    email_pattern = re.findall(r'(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)|(^\s*$)', data['email'])
     if not bool(email_pattern):
         error['email_error'] = 'Неправильный формат почты'
 
-    if phone:
+
+    if data['phone']!='' and phone==True:
         error['phone_error'] = 'Номер уже зарегистрирован'
-    if email:
+    if data['email']!='' and email==True:
         error['email_error'] = 'Email уже зарегистрирован'
 
-    if len(data['email']) == 0:
-        error['email_error'] = 'Поле должно быть заполненным'
-    if len(data['phone']) == 0:
-        error['phone_error'] = 'Поле должно быть заполненным'
+    # if len(data['email']) == 0:
+    #     error['email_error'] = 'Поле должно быть заполненным'
+    # if len(data['phone']) == 0:
+    #     error['phone_error'] = 'Поле должно быть заполненным'
 
     if len(data['first_name']) == 0:
         error['first_name_error'] = 'Поле должно быть заполненным'
@@ -232,14 +233,11 @@ def get_result(request):
 @csrf_exempt
 def check_test(request):
     """ Update test's result """
-    
-    # chat_id: 1488, tests: [10, 13]
     req = json.loads(request.body.decode('utf-8'))
-    tests = list()
+    tests = []
     results = Result.objects.filter(user_id=req['chat_id']).values()
     for test_id in results:
         tests.append(test_id['test_id'])
-    
     return JsonResponse({"data": tests})
 
 @csrf_exempt
@@ -250,7 +248,7 @@ def check_result(request):
     question_response = list()
     answer_response = list()
     for i in data:
-        ex = False
+        # ex = False
         # if type(i) == dict and i['answer'] == None:
         #     correct_question = Question.objects.filter(id=i['q_id']).values()
         #     correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
@@ -266,7 +264,10 @@ def check_result(request):
                 question_response.append(correct_question[0])
                 answer_response.append(correct_answer[0])
             else:
-                if i['answer'] != correct_answer[0]['text']:
+                # Changed this for test
+                user_answer = i['answer']
+                correct_text_answer = correct_answer[0]['text']
+                if user_answer.lower() != correct_text_answer.lower():
                     question_response.append(correct_question[0])
                     answer_response.append(correct_answer[0])
             
@@ -282,9 +283,15 @@ def check_result(request):
                 if not user_answer['is_right']:
                     correct_question = Question.objects.filter(id=i['q_id']).values()
                     correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
-                    # correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
                     question_response.append(correct_question[0])
                     for x in correct_answer:
+                        # Checked
+                        if x == i and x['is_right'] == False: 
+                            x['checked'] = True
+                        elif  x == i and x['is_right'] == True:
+                            x['checked'] = False
+                        else:
+                            x['checked'] = False                      
                         answer_response.append(x)
         
         elif type(i) == dict and i['q_type'] == 'checkbox' and i['answer'] == None:
@@ -306,6 +313,13 @@ def check_result(request):
                             question_response.append(correct_question[0])
                         for x in correct_answer:
                             if x not in answer_response:
+                                #Checked
+                                if x == j and x['is_right'] == False: 
+                                    x['checked'] = True
+                                elif  x == j and x['is_right'] == True:
+                                    x['checked'] = False
+                                else:
+                                    x['checked'] = False 
                                 answer_response.append(x)
                     
                
