@@ -23,7 +23,6 @@ class MyUserManager(BaseUserManager):
         )
 
         user.set_password(password)
-        # user.set_unusable_password()
         user.save(using=self._db)
         return user
 
@@ -37,7 +36,6 @@ class MyUserManager(BaseUserManager):
             chat_id = 'admin',
             password=password,
             phone=phone
-            # date_of_birth=date_of_birth,
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -47,24 +45,25 @@ class MyUserManager(BaseUserManager):
 class MyUser(AbstractBaseUser):
     chat_id = models.CharField(max_length=30, primary_key=True)
     email = models.EmailField(
-        verbose_name='email address',
+        verbose_name='Email',
         max_length=255,
-        unique=False
+        unique=True,
+        blank=True
     )
-    first_name = models.CharField('First name', max_length=32)
-    last_name = models.CharField('Last name', max_length=32)
-    phone = models.CharField('Phone', max_length=12, unique=False)
+    first_name = models.CharField('Имя', max_length=32)
+    last_name = models.CharField('Фамилия', max_length=32)
+    phone = models.CharField('Номер телефона', max_length=12, unique=True, blank=True)
     is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
+    is_admin = models.BooleanField('Администратор', default=False)
 
     objects = MyUserManager()
 
-    USERNAME_FIELD = 'chat_id'
-    REQUIRED_FIELDS = ['is_admin']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['phone']
     
     class Meta:
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
+        verbose_name = 'user'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         return self.email
@@ -87,20 +86,26 @@ class MyUser(AbstractBaseUser):
 
 class Subject(models.Model):
     id = models.BigAutoField(primary_key=True)
-    title = models.CharField("Subject title", max_length=50)
+    title = models.CharField("Предмет", max_length=50)
     
     def __str__(self):
         return self.title
+    
+    class Meta:
+        verbose_name_plural = "Предметы"
     
 
 class Test(models.Model):
     id = models.BigAutoField(primary_key=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, verbose_name="Предмет" , on_delete=models.CASCADE)
     # test_number = models.CharField('Test number', max_length=10)
-    title = models.CharField('Test title', max_length=100)
+    title = models.CharField('Тест', max_length=100)
     
     def __str__(self):
         return self.title
+    
+    class Meta:
+        verbose_name_plural = "Тесты"
     
     
 class Question(models.Model):
@@ -111,27 +116,33 @@ class Question(models.Model):
         TEXT = "text", _("text")
     
     id = models.BigAutoField(primary_key=True)
-    test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    test = models.ForeignKey(Test, verbose_name='Тест', on_delete=models.CASCADE)
     type = models.CharField(
         max_length=8,
         choices=TypeChoice.choices,
         default=TypeChoice.RADIO
     )
-    text = models.CharField('Question text', max_length=350)
+    text = models.CharField('Вопросы', max_length=350)
     
     def __str__(self):
         return self.text
+    
+    class Meta:
+        verbose_name_plural = "Вопросы"
     
 
 class Answer(models.Model):
     id = models.BigAutoField(primary_key=True)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    text = models.CharField('Answer text', max_length=350)
-    is_right = models.BooleanField('Правильный ответ', default=False)
+    question = models.ForeignKey(Question, verbose_name='Вопрос' , on_delete=models.CASCADE)
+    text = models.CharField('Ответ', max_length=350)
+    is_right = models.BooleanField('Правильный ответ?', default=False)
     is_clicked = models.BooleanField(default=False)
     
     def __str__(self):
         return self.text
+    
+    class Meta:
+        verbose_name_plural = "Ответы"
     
     
 class Quiz(models.Model):
@@ -166,7 +177,7 @@ class Quiz(models.Model):
     )
     
     class Meta:
-        verbose_name_plural = 'Quizes'
+        verbose_name_plural = 'Викторины'
     
     def __str__(self):
         return 'Quiz'
@@ -180,28 +191,34 @@ class Quiz(models.Model):
     
 class Result(models.Model):
     id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    user = models.ForeignKey(MyUser, verbose_name='Пользовательское ID', on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, verbose_name='Предмет', on_delete=models.CASCADE)
+    test = models.ForeignKey(Test, verbose_name='Тест', on_delete=models.CASCADE)
     result = models.IntegerField()
     all_question = models.IntegerField()
     
-    @admin.display(description="First name")
+    @admin.display(description="Имя")
     def first_name(self):
         first_name = self.user.first_name
         return f"{first_name}"
     
-    @admin.display(description="Last name")
+    @admin.display(description="Фамилия")
     def last_name(self):
         last_name = self.user.last_name
         return f"{last_name}"
     
-    @admin.display(description="Total result")
+    @admin.display(description="Результат")
     def total_result(self):
         return f"{self.result} / {self.all_question}"
     
+    class Meta:
+        verbose_name_plural = "Результаты"
+    
     
 class Feedback(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    text = models.TextField(max_length=255)
+    id = models.BigAutoField(verbose_name='#', primary_key=True)
+    text = models.TextField(verbose_name='Текст', max_length=255)
+    
+    class Meta:
+        verbose_name_plural = "Обратная связь"
     

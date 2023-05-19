@@ -20,6 +20,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+admin.site.site_header = "Quiz administration"
+admin.site.site_title = "Quiz administration"
+admin.site.index_title = "Quiz administration"
+admin.empty_value_display = '**Empty**'
+
 urlpatterns = [
     path('quiz/', include("quiz.urls")),
     path('admin/', admin.site.urls),
