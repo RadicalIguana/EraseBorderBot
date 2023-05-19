@@ -136,7 +136,7 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, verbose_name='Вопрос' , on_delete=models.CASCADE)
     text = models.CharField('Ответ', max_length=350)
     is_right = models.BooleanField('Правильный ответ?', default=False)
-    is_clicked = models.BooleanField(default=False)
+    # is_clicked = models.BooleanField(default=False)
     
     def __str__(self):
         return self.text

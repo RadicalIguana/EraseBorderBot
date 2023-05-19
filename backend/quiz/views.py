@@ -304,14 +304,12 @@ def check_result(request):
                         if correct_question[0] not in question_response:
                             question_response.append(correct_question[0])
                         for x in correct_answer:
+                            print(x)
                             if x not in answer_response:
                                 #Checked
-                                print(
-                                    f"X - {x}\n"
-                                )
                                 if x['id'] == j['id'] and x['is_right'] == False: 
                                     x['checked'] = True
-                                elif  x['id'] == j['id'] and x['is_right'] == True:
+                                elif x['id'] == j['id'] and x['is_right'] == True:
                                     x['checked'] = False
                                 else:
                                     x['checked'] = False 
