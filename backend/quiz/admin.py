@@ -102,5 +102,5 @@ class ResultAdmin(admin.ModelAdmin):
 
 @admin.register(Quiz)
 class QuizAdmin(admin.ModelAdmin):
-    list_display = ['quiz_subject', 'test']
+    list_display = ['quiz_subject', 'test']        
     

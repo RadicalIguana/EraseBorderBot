@@ -11,7 +11,7 @@ import os
 
 from docx2python import docx2python
 
-from .models import Feedback, Subject, Test, Question, Answer, MyUser, Result
+from .models import Feedback, Subject, Test, Question, Answer, MyUser, Result, Quiz
 
 
 def index(request):
@@ -248,14 +248,6 @@ def check_result(request):
     question_response = list()
     answer_response = list()
     for i in data:
-        # ex = False
-        # if type(i) == dict and i['answer'] == None:
-        #     correct_question = Question.objects.filter(id=i['q_id']).values()
-        #     correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
-        #     for q in correct_question:
-        #         question_response.append(q)
-        #     for a in correct_answer:
-        #         answer_response.append(a)
         
         if type(i) == dict and i['q_type'] == "text": 
             correct_question = Question.objects.filter(id=i['q_id']).values()
@@ -285,10 +277,10 @@ def check_result(request):
                     correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
                     question_response.append(correct_question[0])
                     for x in correct_answer:
-                        # Checked
-                        if x == i and x['is_right'] == False: 
+                        # Checking
+                        if x['id'] == i['answer']['id'] and i['answer']['is_right'] == False: 
                             x['checked'] = True
-                        elif  x == i and x['is_right'] == True:
+                        elif  x['id'] == i['answer']['id'] and x['is_right'] == True:
                             x['checked'] = False
                         else:
                             x['checked'] = False                      
@@ -314,22 +306,17 @@ def check_result(request):
                         for x in correct_answer:
                             if x not in answer_response:
                                 #Checked
-                                if x == j and x['is_right'] == False: 
+                                print(
+                                    f"X - {x}\n"
+                                )
+                                if x['id'] == j['id'] and x['is_right'] == False: 
                                     x['checked'] = True
-                                elif  x == j and x['is_right'] == True:
+                                elif  x['id'] == j['id'] and x['is_right'] == True:
                                     x['checked'] = False
                                 else:
                                     x['checked'] = False 
                                 answer_response.append(x)
-                    
-               
-        # elif type(i) == dict and i['answer'] == None:
-        #     correct_question = Question.objects.filter(id=i['q_id']).values()
-        #     correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
-        #     for q in correct_question:
-        #         question_response.append(q)
-        #     for a in correct_answer:
-        #         answer_response.append(a)
+
     return JsonResponse({"questions": question_response, "answers": answer_response})
 
 def transform_array_by_id(arr):
