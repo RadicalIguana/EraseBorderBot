@@ -16,6 +16,9 @@ class MyUserManager(BaseUserManager):
         if not email:
             raise ValueError('Users must have an email address')
 
+        if email == "":
+            email = None
+            
         user = self.model(
             chat_id=chat_id,
             email=self.normalize_email(email),
@@ -47,12 +50,14 @@ class MyUser(AbstractBaseUser):
     email = models.EmailField(
         verbose_name='Email',
         max_length=255,
+        null=True,
         unique=True,
-        blank=True
+        blank=True,
+        default=None
     )
     first_name = models.CharField('Имя', max_length=32)
     last_name = models.CharField('Фамилия', max_length=32)
-    phone = models.CharField('Номер телефона', max_length=12, unique=True, blank=True)
+    phone = models.CharField('Номер телефона', max_length=12, null=True, unique=True, blank=True, default=None)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField('Администратор', default=False)
 
@@ -67,6 +72,13 @@ class MyUser(AbstractBaseUser):
 
     def __str__(self):
         return self.email
+    
+    def save(self, *args, **kwargs):
+        if self.email == "":
+            self.email = None
+        if self.phone == "":
+            self.phone = None
+        super(MyUser, self).save(*args, **kwargs)
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
