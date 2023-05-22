@@ -50,8 +50,8 @@ CORS_ALLOW_HEADERS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'https://backend/',
-    'https://eraseborderbot-production.up.railway.app/',
-    'https://eraseborderbot-production.up.railway.app'
+    'https://eraseborderbot-production-35f3.up.railway.app/',
+    'https://eraseborderbot-production-35f3.up.railway.app'
 ]
 
 
@@ -126,9 +126,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'railway',
         'USER': 'postgres',
-        'PASSWORD': 'MQ8oDsibHdymCNydkks3',
-        'HOST': 'containers-us-west-196.railway.app',
-        'PORT': '6436',
+        'PASSWORD': 'exTzHBgMZDSQE0ZYcVEW',
+        'HOST': 'containers-us-west-158.railway.app',
+        'PORT': '5459',
     }
 }
 

@@ -11,7 +11,7 @@ from django.utils.html import format_html
 
 from .models import Subject, Test, Question, Answer, Quiz, MyUser, Result, Feedback
 
-class UserCreationForm(forms.ModelForm):
+class MyUserCreationForm(forms.ModelForm):
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
 
@@ -34,7 +34,7 @@ class UserCreationForm(forms.ModelForm):
         return user
 
 
-class UserChangeForm(forms.ModelForm):
+class MyUserChangeForm(forms.ModelForm):
     password = ReadOnlyPasswordHashField()
 
     class Meta:
@@ -43,11 +43,11 @@ class UserChangeForm(forms.ModelForm):
 
 
 class UserAdmin(BaseUserAdmin, admin.ModelAdmin):
-    form = UserChangeForm
-    add_form = UserCreationForm
+    form = MyUserChangeForm
+    add_form = MyUserCreationForm
 
     list_display = ('email', 'first_name', 'last_name', 'phone', 'is_admin')
-    list_filter = ('is_admin', )
+    list_filter = ('is_admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         # ('Personal info', {'fields': ('date_of_birth',)}),
@@ -61,8 +61,8 @@ class UserAdmin(BaseUserAdmin, admin.ModelAdmin):
             'fields': ('email', 'first_name', 'last_name', 'phone', 'password1', 'password2'),
         }),
     )
-    search_fields = ('email',)
-    ordering = ('email', 'first_name', 'last_name')
+    search_fields = ('email', 'first_name', 'last_name', )
+    ordering = ('email', 'first_name', 'last_name', 'is_admin')
     filter_horizontal = ()
 
 
@@ -76,7 +76,7 @@ class SubjectAdmin(admin.ModelAdmin):
 
 @admin.register(Test)
 class TestAdmin(admin.ModelAdmin):
-    list_display = ['subject', 'test_number', 'title']
+    list_display = ['subject', 'title']
 
 
 @admin.register(Question)
@@ -91,15 +91,16 @@ class AnswerAdmin(admin.ModelAdmin):
 
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ['id', 'rating', 'text']
+    list_display = ['id', 'text']
     
     
 @admin.register(Result)
 class ResultAdmin(admin.ModelAdmin):
-    list_display = ['user_id', 'subject', 'test', 'result']
+    list_display = ['user_id', 'first_name', 'last_name', 'subject', 'test', 'total_result']
+    ordering = ('user_id', 'subject', 'test')
     
 
 @admin.register(Quiz)
 class QuizAdmin(admin.ModelAdmin):
-    list_display = ['subject', 'test']
+    list_display = ['quiz_subject', 'test']        
     
