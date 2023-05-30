@@ -121,7 +121,6 @@ class Test(models.Model):
     
     
 class Question(models.Model):
-    
     class TypeChoice(models.TextChoices):
         RADIO = "radio", _("radio")
         CHECKBOX = "checkbox", ("checkbox")

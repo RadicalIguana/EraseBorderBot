@@ -2,21 +2,12 @@ import json
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
 from django.conf import settings
-
 from itertools import groupby
 import re
 import os
-
 from docx2python import docx2python
-
 from .models import Feedback, Subject, Test, Question, Answer, MyUser, Result, Quiz
-
-
-def index(request):
-    return HttpResponse('Some text')
-
 
 @csrf_exempt
 def get_user(request):
@@ -67,16 +58,10 @@ def check_error(data):
     if not bool(email_pattern):
         error['email_error'] = 'Неправильный формат почты'
 
-
     if data['phone']!='' and phone==True:
         error['phone_error'] = 'Номер уже зарегистрирован'
     if data['email']!='' and email==True:
         error['email_error'] = 'Email уже зарегистрирован'
-
-    # if len(data['email']) == 0:
-    #     error['email_error'] = 'Поле должно быть заполненным'
-    # if len(data['phone']) == 0:
-    #     error['phone_error'] = 'Поле должно быть заполненным'
 
     if len(data['first_name']) == 0:
         error['first_name_error'] = 'Поле должно быть заполненным'
@@ -85,15 +70,6 @@ def check_error(data):
 
     return error
 
-
-@csrf_exempt
-def get_all_subjects(request):
-    """ /quiz/getAllSubjects """
-    subjects = Subject.objects.all().values()
-    data = list(subjects)
-    return JsonResponse({'data': data})
-
-
 @csrf_exempt
 def get_subjects_tests(request):
     subjects = Subject.objects.all().values()
@@ -101,62 +77,6 @@ def get_subjects_tests(request):
     sub_data = list(subjects)
     test_data = list(tests)
     return JsonResponse({'subjects': sub_data, 'tests': test_data})
-
-
-@csrf_exempt
-def get_subject(request):
-    """ Get subject by id 
-        /quiz/subject/
-        {
-            "id": <int>
-        }
-    """
-    req = json.loads(request.body.decode('utf-8'))
-    subject = Subject.objects.filter(id=req['id']).values()
-    data = list(subject)
-    return JsonResponse({'data': data})
-
-
-@csrf_exempt
-def get_test(request):
-    """ Get all tests of subject by subject_id
-        /quiz/test/ 
-        {
-            "subject_id": <int>
-        }
-    """
-    req = json.loads(request.body.decode('utf-8'))
-    subject = Test.objects.filter(subject=req['subject_id']).values()
-    data = list(subject)
-    return JsonResponse({'data': data})
-
-
-@csrf_exempt
-def get_question(request):
-    """ Get all questions of test by test_id 
-        /quiz/question/
-        {
-            "test_id": <int>
-        }
-    """
-    req = json.loads(request.body.decode('utf-8'))
-    questions = Question.objects.filter(test=req['test_id']).values()
-    data = list(questions)
-    return JsonResponse({'data': data})
-
-
-@csrf_exempt
-def get_answer(request):
-    """ Get alls answer of question by question_id 
-        /quiz/answer/
-        {
-            "question_id": <int>
-        }
-    """
-    req = json.loads(request.body.decode('utf-8'))
-    answer = Answer.objects.filter(question=req['question_id']).values()
-    data = list(answer)
-    return JsonResponse({'data': data})
 
 
 @csrf_exempt
@@ -213,10 +133,8 @@ def get_result(request):
         test_id = i['test_id']
         result = i['result']
         all_question = i['all_question']
-        
         subject_title = Subject.objects.get(id=subject_id)
         subject_title = subject_title.title
-        
         test_title = Test.objects.get(id=test_id)
         test_title = test_title.title
         response.append({
@@ -225,7 +143,6 @@ def get_result(request):
             "result": result,
             "all_question": all_question
         })
-        
     return JsonResponse({
         "data": response
     })
@@ -248,7 +165,6 @@ def check_result(request):
     question_response = list()
     answer_response = list()
     for i in data:
-        
         if type(i) == dict and i['q_type'] == "text": 
             correct_question = Question.objects.filter(id=i['q_id']).values()
             correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
@@ -256,13 +172,11 @@ def check_result(request):
                 question_response.append(correct_question[0])
                 answer_response.append(correct_answer[0])
             else:
-                # Changed this for test
                 user_answer = i['answer']
                 correct_text_answer = correct_answer[0]['text']
                 if user_answer.lower() != correct_text_answer.lower():
                     question_response.append(correct_question[0])
                     answer_response.append(correct_answer[0])
-            
         elif type(i) == dict and i['q_type'] == "radio":
             if i['answer'] == None:
                 correct_question = Question.objects.filter(id=i['q_id']).values()
@@ -277,7 +191,6 @@ def check_result(request):
                     correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
                     question_response.append(correct_question[0])
                     for x in correct_answer:
-                        # Checking
                         if x['id'] == i['answer']['id'] and i['answer']['is_right'] == False: 
                             x['checked'] = True
                         elif  x['id'] == i['answer']['id'] and x['is_right'] == True:
@@ -285,15 +198,12 @@ def check_result(request):
                         else:
                             x['checked'] = False                      
                         answer_response.append(x)
-        
         elif type(i) == dict and i['q_type'] == 'checkbox' and i['answer'] == None:
             correct_question = Question.objects.filter(id=i['q_id']).values()
             correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
             question_response.append(correct_question[0])
             for x in correct_answer:
                 answer_response.append(x)
-        
-        
         elif type(i) == list:
             answer_array = transform_array_by_id(i)
             for elem in answer_array: 
@@ -306,7 +216,6 @@ def check_result(request):
                         for x in correct_answer:
                             print(x)
                             if x not in answer_response:
-                                #Checked
                                 if x['id'] == j['id'] and x['is_right'] == False: 
                                     x['checked'] = True
                                 elif x['id'] == j['id'] and x['is_right'] == True:
@@ -314,7 +223,6 @@ def check_result(request):
                                 else:
                                     x['checked'] = False 
                                 answer_response.append(x)
-
     return JsonResponse({"questions": question_response, "answers": answer_response})
 
 def transform_array_by_id(arr):
@@ -325,7 +233,6 @@ def transform_array_by_id(arr):
 
 @csrf_exempt
 def quiz_create(request):
-    
     docs_array = ['Информатика.DOCX', 'Дизайн.DOCX', 'Программирование.DOCX', 'Разработка сайтов.DOCX']
     for i in docs_array:
         print(i)
@@ -350,8 +257,6 @@ def quiz_create(request):
             elif answer.match(line):
                 array[-1].append(answer.findall(line)[0])
                 
-        # array = [['Предмет'], ['Тест'], ['Радио', ('+', 'Answer 1'), ('-', 'Answer 2')], ['Checkbox', ('+', 'Answer 1'), ('+', 'Answer 2'), ('-', 'Answer 3')], ['Text', ('Test answer')]]
-        
         Subject.objects.create(title=array[0][0])
         subject_id = Subject.objects.filter(title=array[0][0]).values()
         subject_id = subject_id[0]['id']
@@ -375,21 +280,17 @@ def quiz_create(request):
                         question = row[x]
                     else:
                         answers.append(row[x])
-                        
-                
                 count = 0
                 for i in range(len(answers)):
                     for j in answers[i]:
                         if j == '+':
                             count += 1
-
                 if count == 0:
                     question_type = 'text'
                 elif count == 1:
                     question_type = 'radio'
                 else:
                     question_type = 'checkbox'
-                    
                 count = 0   
                 Question.objects.create(text=question, test_id=test_id, type=question_type)
                 question_query = list(Question.objects.filter(text=question).values())
@@ -412,5 +313,3 @@ def send_feedback(request):
     feedback.text = data['text']
     feedback.save()    
     return JsonResponse({"data": "OK"})
-    
-    

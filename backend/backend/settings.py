@@ -50,8 +50,9 @@ CORS_ALLOW_HEADERS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'https://backend/',
-    'https://eraseborderbot-production-35f3.up.railway.app/',
-    'https://eraseborderbot-production-35f3.up.railway.app'
+    'https://eraseborderbot-production-fe0e.up.railway.app/',
+    'https://eraseborderbot-production-fe0e.up.railway.app',
+    
 ]
 
 
