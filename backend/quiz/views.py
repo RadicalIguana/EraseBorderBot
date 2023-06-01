@@ -166,7 +166,6 @@ def check_result(request):
     answer_response = list()
     for i in data:
         if type(i) == dict and i['q_type'] == "text":
-            print(1) 
             correct_question = Question.objects.filter(id=i['q_id']).values()
             correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
             if i['answer'] == None:
@@ -179,7 +178,6 @@ def check_result(request):
                     question_response.append(correct_question[0])
                     answer_response.append(correct_answer[0])
         elif type(i) == dict and i['q_type'] == "radio":
-            print(2)
             if i['answer'] == None:
                 correct_question = Question.objects.filter(id=i['q_id']).values()
                 correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
@@ -204,33 +202,44 @@ def check_result(request):
                         
                         
         elif type(i) == dict and i['q_type'] == 'checkbox' and i['answer'] == None:
-            print(3)
             correct_question = Question.objects.filter(id=i['q_id']).values()
             correct_answer = Answer.objects.filter(question_id=i['q_id']).values()
             question_response.append(correct_question[0])
             for x in correct_answer:
                 answer_response.append(x)
         elif type(i) == list:
-            print(4)
-            print(i)
             answer_array = transform_array_by_id(i)
-            for elem in answer_array: 
-                for j in elem:
-                    if not j['is_right']:
-                        correct_question = Question.objects.filter(id=j['question_id']).values()
-                        correct_answer = Answer.objects.filter(question_id=j['question_id']).values()
-                        if correct_question[0] not in question_response:
-                            question_response.append(correct_question[0])
-                        for x in correct_answer:
-                            if x not in answer_response:
-                                if x['id'] == j['id'] and x['is_right'] == False: 
-                                    x['checked'] = True
-                                elif x['id'] == j['id'] and x['is_right'] == True:
-                                    x['checked'] = False
-                                else:
-                                    x['checked'] = False 
+            for elem in answer_array:
+                correct_question = Question.objects.filter(id=elem[0]['question_id']).values()
+                question_response.append(correct_question[0])
+                correct_answer = list(Answer.objects.filter(question_id = elem[0]['question_id']).values())
+                for i in elem:
+                    for ca in correct_answer:
+                        if i['id'] == ca['id'] and ca['is_right'] == False:
+                            ca['checked'] = True
+            for i in correct_answer:
+                answer_response.append(i)
+        # elif type(i) == list:
+        #     print(4)
+        #     print(i)
+        #     answer_array = transform_array_by_id(i)
+        #     for elem in answer_array: 
+        #         for j in elem:
+        #             if not j['is_right']:
+        #                 correct_question = Question.objects.filter(id=j['question_id']).values()
+        #                 correct_answer = Answer.objects.filter(question_id=j['question_id']).values()
+        #                 if correct_question[0] not in question_response:
+        #                     question_response.append(correct_question[0])
+        #                 for x in correct_answer:
+        #                     if x not in answer_response:
+        #                         if x['id'] == j['id'] and x['is_right'] == False: 
+        #                             x['checked'] = True
+        #                         elif x['id'] == j['id'] and x['is_right'] == True:
+        #                             x['checked'] = False
+        #                         else:
+        #                             x['checked'] = False 
 
-                                answer_response.append(x)  
+        #                         answer_response.append(x)  
     return JsonResponse({"questions": question_response, "answers": answer_response})
 
 def transform_array_by_id(arr):
