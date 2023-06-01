@@ -143,6 +143,7 @@ def get_result(request):
             "result": result,
             "all_question": all_question
         })
+        response.reverse()
     return JsonResponse({
         "data": response
     })
