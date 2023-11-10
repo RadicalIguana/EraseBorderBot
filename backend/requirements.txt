@@ -20,7 +20,7 @@ colorama==0.4.6
 compressed-rtf==1.0.6
 coreapi==2.3.3
 coreschema==0.0.4
-Django==4.2
+Django==3.2.23
 django-cors-headers==3.14.0
 django-phonenumber-field==7.0.2
 django-rest-swagger==2.2.0
