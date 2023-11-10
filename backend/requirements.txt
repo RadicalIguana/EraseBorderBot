@@ -59,7 +59,7 @@ pycryptodome==3.17
 pydantic==1.10.7
 pypika-tortoise==0.1.6
 python-dateutil==2.8.2
-python-dotenv==1.0.0
+python-dotenv==0.21.1
 python-multipart==0.0.6
 python-pptx==0.6.21
 pytz==2023.3
