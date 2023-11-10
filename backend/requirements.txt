@@ -27,7 +27,7 @@ django-rest-swagger==2.2.0
 django-smart-selects==1.6.0
 djangorestframework==3.14.0
 docx==0.2.4
-docx2python==2.6.3
+docx2python==2.0.4
 docx2txt==0.8
 ebcdic==1.1.1
 extract-msg==0.28.7
