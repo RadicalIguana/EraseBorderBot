@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -121,15 +122,19 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'eraseborder_db',
+#         'USER': 'root',
+#         'PASSWORD': '5zFcLlFOBFBqM1fPLOIM1kxHEF8uk9PE',
+#         'HOST': 'dpg-cl6vbk9h9grs73e8k7og-a',
+#         'PORT': '5459',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'eraseborder_db',
-        'USER': 'root',
-        'PASSWORD': '5zFcLlFOBFBqM1fPLOIM1kxHEF8uk9PE',
-        'HOST': 'dpg-cl6vbk9h9grs73e8k7og-a',
-        'PORT': '5459',
-    }
+	"default": dj_database_url.parse('postgres://root:5zFcLlFOBFBqM1fPLOIM1kxHEF8uk9PE@dpg-cl6vbk9h9grs73e8k7og-a.oregon-postgres.render.com/eraseborder_db')
 }
 
 # Password validation
