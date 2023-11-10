@@ -90,3 +90,4 @@ whitenoise==6.4.0
 xlrd==1.2.0
 XlsxWriter==3.1.0
 yarl==1.8.2
+dj-database-url==2.1.0
